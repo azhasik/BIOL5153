@@ -1,0 +1,178 @@
+#! /usr/bin/env python
+
+#load system module
+import sys
+
+#adam=42
+#print("Main-1:", adam)
+
+#a function to clean up a DNA sequence
+
+def clean_seq(input_seq):
+	#print("First time in clean:" +str(adam))
+	#adam=adam+1
+	#print("Second time in clean:"+str(adam))
+	clean=input_seq.upper()
+	clean=clean.replace("N","")
+	return clean
+
+def nuc_freq(sequence, base, sig_digs=2):
+	#calculate the length of the sequence 
+	length=len(sequence)
+	#count the number of this nucleotide 
+	count_of_base=sequence.count(base)
+	
+	#calculate the base frequency
+	freq_of_base=count_of_base/length	
+	
+	#return the frequency and the length
+	return(length,round(freq_of_base,2))
+
+
+#for argument in sys.argv:
+	#print(argument)
+
+#sys.exit()
+
+usage = sys.argv[0] + ": genome.fasta features.gff"
+
+if len(sys.argv)<3:
+	print(usage)
+	sys.exit("\nThis script requires both a FASTA file and a GFF file\n")
+
+genome=sys.argv[1]
+gff=sys.argv[2]
+
+fsa_file=sys.argv[1]
+gff_file=sys.argv[2]
+fsa_in=open(fsa_file, 'r')
+gff_in=open(gff_file, 'r')
+
+#declare a variable for the genome sequence
+genome=''
+
+#initialize line counter
+first_line=0
+
+#read in the genome file
+for line in fsa_in:
+    #print(str(first_line)+ ': '+ line)
+    line=line.rstrip("\n")
+    if first_line>0:
+        genome=genome+line
+        
+        #increment the line number
+    first_line+=1
+        
+fsa_in.close()
+
+cds=''
+trna=''
+rrna=''
+intron=''
+misc=''
+repeats=''
+
+
+
+#read in gff file
+
+for line in gff_in:
+    
+    line=line.rstrip("\n")
+    
+    types=line.split('; type')
+    other_type=types[len(types)-1]
+    #print(other_type)
+    
+    fields=line.split('\t')
+    type=fields[2]
+    start=int(fields[3])
+    end=int(fields[4])
+    
+    #print(type,"\t",start,"\t",stop)
+    
+    #extract this feature from the genome
+    fragment=genome[start-1:end]
+    
+    fragment=clean_seq(fragment)
+    
+    clean_seq(fragment)
+    
+    #print(clean_seq)
+    
+    #sys.exit()
+
+    if type=='CDS':
+        cds+=fragment
+    if type=='intron':
+        intron+=fragment
+    if type=='misc_feature':
+        misc+=fragment
+    if type=='repeat_region':
+        repeats+=fragment
+    if type=='rRNA':
+        rrna+=fragment
+    if type=='tRNA':
+        trna+=fragment
+
+#trying to fix the final output
+CDS="Exon"
+Intron="Intron"
+rRNA="rRNA"
+tRNA="tRNA"
+Misc_features="Misc_features"
+Repeat_regions="Repeat_regions"
+name=[cds,intron,rrna,trna,misc,repeats]
+
+#Loop over the 4 nucleotides
+for feature_type in [cds,intron,rrna,trna,misc,repeats]:
+	for nucleotide in ["A","C","G","T"]:
+		#print(nucleotide)
+		(feature_length, feature_comp)=nuc_freq(feature_type,nucleotide,sig_digs=2)
+		print(feature_type+"\t"+str(feature_length)+"\t"+str(feature_comp)+"\t"+nucleotide) 
+
+
+
+#feature types and lengths
+
+#cds
+total_cds=len(cds)
+cds_gc=cds.count("G")+cds.count("C")
+#intro
+total_intron=len(intron)
+intron_gc=intron.count("G")+intron.count("C")
+#misc_feature
+total_misc=len(misc)
+misc_gc=misc.count("G")+misc.count("C")
+#rRNA
+total_rrna=len(rrna)
+rrna_gc=rrna.count("G")+rrna.count("C")
+#repeat_region
+total_repeats=len(repeats)
+repeats_gc=repeats.count("G")+repeats.count("C")
+#tRNA
+total_trna=len(trna)
+trna_gc=trna.count("G")+trna.count("C")
+#total_fragment
+total_fragment=len(fragment)
+
+    
+#print the output    
+#print("exon","\t",total_cds,"\t",round(total_cds/len(genome)*100,1),"\t",round((cds_gc/total_cds)*100,2))
+#print("intron","\t",total_intron,"\t",round(total_intron/len(genome)*100,1),"\t",round((intron_gc/total_intron)*100,2))
+#print("misc_feature","\t",total_misc,"\t",round(total_misc/len(genome)*100,1),"\t",round((misc_gc/total_misc)*100,2))
+#print("rRNA","\t",total_rrna,"\t",round(total_rrna/len(genome)*100,1),"\t",round((rrna_gc/total_rrna)*100,2))
+#print("repeat_region","\t",total_repeats,"\t",round(total_repeats/len(genome)*100,1),"\t",round((repeats_gc/total_repeats)*100,2))
+#print("tRNA","\t",total_trna,"\t",round(total_trna/len(genome)*100,1),"\t",round((trna_gc/total_trna)*100,2))
+
+    
+    #print(len(fragment), g_count, c_count)    
+    
+
+    
+    
+#close the gff file
+gff_in.close()
+
+sys.exit()
