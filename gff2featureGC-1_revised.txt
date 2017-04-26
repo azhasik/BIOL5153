@@ -123,15 +123,15 @@ rRNA="rRNA"
 tRNA="tRNA"
 Misc_features="Misc_features"
 Repeat_regions="Repeat_regions"
-name=[cds,intron,rrna,trna,misc,repeats]
-
+name=["cds","intron","rrna","trna","misc","repeats"]
+i=0
 #Loop over the 4 nucleotides
 for feature_type in [cds,intron,rrna,trna,misc,repeats]:
 	for nucleotide in ["A","C","G","T"]:
 		#print(nucleotide)
 		(feature_length, feature_comp)=nuc_freq(feature_type,nucleotide,sig_digs=2)
-		print(feature_type+"\t"+str(feature_length)+"\t"+str(feature_comp)+"\t"+nucleotide) 
-
+		print(name[i]+"\t"+str(feature_length)+"\t"+str(feature_comp)+"\t"+nucleotide) 
+	i=i+1
 
 
 #feature types and lengths
