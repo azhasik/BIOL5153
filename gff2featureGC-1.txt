@@ -57,15 +57,21 @@ def reverse_comp(sequence):
 	reverse=''.join(reversed)
 	return reverse
 
-test_seq="ACATAG"
+#test_seq="TGTATC"
 #print(gc_cont(test_seq))
-print(reverse_comp(test_seq))
+#print(reverse_comp(test_seq))
 
 #making the dict
 #key = feature type, value = concatenation of all sequences of that type
 	#not useful for anything other than calc AT/GC content
 feature_sequences={}
 
+#key = gene name, value = another dict [key=exon number, value=exon seq]
+#gene_sequences[cox_1][1]="the seq for the first exon of cox1"
+#gene_sequences[cox_1][2]="the seq for the second exon of cox1"
+gene_sequences={}
+exons={}
+exon_num_list=[]
 
 #for argument in sys.argv:
 	#print(argument)
@@ -111,8 +117,6 @@ intron=''
 misc=''
 repeats=''
 
-
-
 #read in gff file
 
 for line in gff_in:
@@ -127,19 +131,64 @@ for line in gff_in:
     type=fields[2]
     start=int(fields[3])
     end=int(fields[4])
-    string_type=fields[6]
-    gene_name=fields[8]
-    
-    #print(type,"\t",start,"\t",stop)
     
     #extract this feature from the genome
     fragment=genome[start-1:end]
     fragment=clean_seq(fragment)
     
+    #determine the strand, and reverse complement or not
+    if(fields[6]=="-"):
+       fragment=reverse_comp(fragment)
+
+
+    #store the big concatenated thing for calc GC content
+
+
+    if(type=="CDS"):
+       #get the gene name
+    
+       attributes=fields[8].split(" ; ")
+	    
+       gene_fields=attributes[0].split(" ")
+       gene_name=gene_fields[1]
+       
+       #get exon number
+       if("exon" in gene_fields):
+          exon_num=gene_fields[-1]
+          #print("Has exons: "+attributes[0])
+          #print(gene_name, exon_num)
+          #exon_num_list.append(exon_num)
+          #exon_num_list.sort()
+          exons[exon_num]=genome[start-1:end]
+          gene_sequences[gene_name]=exons
+          
+       else:
+          #print("Doesn't have exons: "+attributes[0])
+          exon_num_no_int=attributes[0].split(" ")
+          no_int_gene_name=exon_num_no_int[1]
+          #print(no_int_gene_name)
+          gene_sequences[no_int_gene_name]=genome[start-1:end]
+     
+    #print(type,"\t",start,"\t",stop)
+    
     if type in feature_sequences:
     	feature_sequences[type]+=fragment
     else:
     	feature_sequences[type]=fragment
+
+    #store the seq in the gene_sequences dict
+    
+
+    #creat loop for storing in dict
+    #key = gene name, value = another dict(exons) [key=exon number, value=exon seq]
+    #for blah blah blah:
+       #blah blah:
+          #blah:
+
+   
+print(gene_sequences)
+#print(gene_sequences['ccmC'])
+#print(gene_sequences['cox1']['3'])
 
 #close the gff file
 gff_in.close()
